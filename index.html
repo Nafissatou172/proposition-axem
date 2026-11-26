@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,100;1,9..144,300..900,100&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" referrerpolicy="no-referrer"></script>
 <style>
 /* ======================= DA AXEM ======================= */
 :root{
@@ -814,9 +815,9 @@ footer.pied{
       </div>
     </div>
     <div class="btns">
-      <button class="btn btn-p" onclick="window.print()">
+      <button class="btn btn-p" id="btn-dl" onclick="telechargerPDF()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Télécharger la proposition (PDF)
+        <span id="btn-dl-label">Télécharger la proposition (PDF)</span>
       </button>
     </div>
   </div>
@@ -838,6 +839,41 @@ footer.pied{
 </footer>
 
 <script>
+/* ========== Téléchargement PDF ========== */
+function telechargerPDF(){
+  const btn = document.getElementById('btn-dl');
+  const label = document.getElementById('btn-dl-label');
+  if(btn.disabled) return;
+  const origLabel = label.textContent;
+  btn.disabled = true;
+  label.textContent = 'Préparation du PDF…';
+
+  const opt = {
+    margin: [8, 0, 8, 0],
+    filename: 'Proposition_Bellanger_AXM-20261125-CBE2.pdf',
+    image: { type: 'jpeg', quality: 0.96 },
+    html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowWidth: 1280, backgroundColor: '#FFFDF7' },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+    pagebreak: { mode: ['css', 'legacy'] }
+  };
+
+  // Scroll au top pour capturer la page complète
+  window.scrollTo(0, 0);
+
+  html2pdf().set(opt).from(document.body).save()
+    .then(() => {
+      label.textContent = 'PDF téléchargé ✓';
+      setTimeout(() => { label.textContent = origLabel; btn.disabled = false; }, 2500);
+    })
+    .catch((err) => {
+      console.error(err);
+      // Fallback : si html2pdf échoue, on bascule sur le dialogue d'impression
+      label.textContent = origLabel;
+      btn.disabled = false;
+      window.print();
+    });
+}
+
 /* ========== Calculateur ROI interactif ========== */
 (function(){
   const COUT_CR = 55;   // € / h chargé conducteur travaux
